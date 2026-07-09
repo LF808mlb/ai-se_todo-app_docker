@@ -5,16 +5,30 @@ services:
       - mongo_data:/data/db
   backend:
     build: ./server
-    ports:
-      - "3001:3001"
+    restart: unless-stopped
     environment:
       MONGO_URI: ${MONGO_URI}
     depends_on:
       - mongo
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
   frontend:
     build: ./client
-    ports:
-      - "5173:80"
+    restart: unless-stopped
 
 volumes:
   mongo_data:
+  caddy_data:
+  caddy_config:
